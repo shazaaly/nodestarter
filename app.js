@@ -9,7 +9,7 @@ const toursRouter = require("./routes/touresRoutes");
 const userRouter = require("./routes/usersRoutes");
 
 //MIDDLEWARES:
-if (process.env.NODE.ENV === "development") {
+if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 

@@ -1,99 +1,90 @@
 const fs = require('fs');
 const Tour = require('../models/tourModel');
 
-// const tours = JSON.parse(
-//   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
-// );
-//middleware to check id:
+/* functions for routes */
+exports.getAllTours = async (req, res) => {
 
-exports.idChecker = (req, res, next, val) => {
-  return res.status(404).json({
-    status: 'fail',
-    message: 'ID not Valid',
-  });
+  /*console.log(req.query) ==== > object */
+  const queryObj = { ...req.query }
+  const exclude = ['page', 'limit', 'fields', 'sort']
+  exclude.forEach(item => delete queryObj[item])
+  let queryString = JSON.stringify(queryObj)
+  queryString = queryString.replace(/\b(gte|ge|le|lte)\b/g, match => `$${match}`)
 
-  next();
-};
-/* middleware to check if body contains name and price props */
-exports.bodyChecker = (req, res, next) => {
-  if (!req.body.name || !req.body.price) {
-    return res.status(404).json({
+  const query = Tour.find(JSON.parse(queryString))
+  const tours = await query
+}
+
+
+exports.createTour = async (req, res) => {
+  try {
+    const newTour = await Tour.create(req.body);
+    return res.status(201).json({
+      status: 'successful',
+      data: {
+        tour: newTour,
+      },
+    });
+  } catch (Error) {
+    res.status(400).json({
       status: 'fail',
-      message: 'Request Body has no price or name',
+      message: Error.message,
     });
   }
-  next();
 };
 
-/* functions for routes */
-//get tours data from tours-simple file :
-
-exports.getAllTours = (req, res) => {
-  console.log(req.reqTime);
-  res.status(200).json({
-    status: '200',
-    time: req.reqTime,
-    // data: {
-    //   tours,
-    // },
-  });
-};
-
-//post tours data from tours-simple file :
-exports.createTour = (req, res) => {
-  //create new tour id:
-  // const newId = tours[tours.length - 1].id + 1;
-  // const newTour = Object.assign({ id: newId }, req.body);
-  // tours.push(newTour);
-  // fs.writeFile(
-  //   `./dev-data/data/tours-simple.json`,
-  //   JSON.stringify(tours),
-  //   (err) => {
-  //     res.status(201).json({
-  //       status: "success",
-  //       data: {
-  //         tour: newTour,
-  //       },
-  //     });
-  //   }
-  // );
-};
 //get tour by id route
-exports.getTour = (req, res) => {
-  // console.log(req.params);
-  //to convert id string to number
-  const id = req.params.id * 1;
-  // const tour = tours.find((tour) => tour.id === id);
-  // if (!tour) {
-  //   return res.status(404).json({
-  //     status: "Not Found",
-  //     message: "Invalid id",
-  //   });
-  // }
-  res.status(200).json({
-    status: 'success',
-    requestedAt: req.reqTime,
-    // data: {
-    //   tour,
-    // },
-  });
+exports.getTour = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const tour = await Tour.findById(id);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } catch (Error) {
+    res.status(404).json({
+      status: 'fail',
+      message: Error.message,
+    });
+  }
 };
 
-// UPDATE CERATIN PART OF DATA:
+exports.updateTour = async (req, res) => {
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
-exports.updateTour = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: '<div>Data updated<div/>',
-    },
-  });
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } catch (Error) {
+    res.status(404).json({
+      status: 'fail',
+      message: Error.message,
+    });
+  }
 };
+
 //DELETE BY ID:
 
-exports.deleteTour = (req, res) => {
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+exports.deleteTour = async (req, res) => {
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (Error) {
+    res.status(404).json({
+      status: 'fail',
+      message: Error.message,
+    });
+  }
 };

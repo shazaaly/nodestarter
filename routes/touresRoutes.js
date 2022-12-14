@@ -1,20 +1,20 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const toursController = require("../controllers/toursController");
+const toursController = require('../controllers/toursController');
 //access param using param middleware:
-router.param("id", toursController.idChecker);
+// router.param("id", toursController.idChecker);
 
 //refractor
 router
-  .route("/:id")
+  .route('/:id')
   .get(toursController.getTour)
   .patch(toursController.updateTour)
   .delete(toursController.deleteTour);
 
 router
-  .route("/")
+  .route('/')
   .get(toursController.getAllTours)
-  .post( toursController.bodyChecker,toursController.createTour);
+  .post(toursController.createTour);
 
 module.exports = router;

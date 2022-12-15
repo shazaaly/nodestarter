@@ -3,18 +3,38 @@ const Tour = require('../models/tourModel');
 
 /* functions for routes */
 exports.getAllTours = async (req, res) => {
+  try {
+    /*console.log(req.query) ==== > object */
+    const queryObj = { ...req.query }
+    const exclude = ['page', 'limit', 'fields', 'sort']
+    exclude.forEach(el => delete queryObj[el])
+    let queryString = JSON.stringify(queryObj)
+    // console.log(queryString)
+    queryString = queryString.replace(/\b(gte|ge|le|lte)\b/g, match => `$${match}`)
 
-  /*console.log(req.query) ==== > object */
-  const queryObj = { ...req.query }
-  const exclude = ['page', 'limit', 'fields', 'sort']
-  exclude.forEach(item => delete queryObj[item])
-  let queryString = JSON.stringify(queryObj)
-  queryString = queryString.replace(/\b(gte|ge|le|lte)\b/g, match => `$${match}`)
+    let query = Tour.find(JSON.parse(queryString))
+    // console.log(JSON.parse(queryString));
+    if (req.query.sort) {
+      let sortBy = req.query.sort.split(',').join(' ')
+      // console.log(sortBy)
+      query = query.sort(sortBy)
 
-  const query = Tour.find(JSON.parse(queryString))
-  const tours = await query
+    } else {
+      query = query.sort('-createdAt')
+
+    }
+
+
+
+    const tours = await query
+
+
+  } catch (Error) {
+    console.log(Error.message)
+
+  }
+
 }
-
 
 exports.createTour = async (req, res) => {
   try {

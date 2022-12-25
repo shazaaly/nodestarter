@@ -49,8 +49,8 @@ exports.getMonthlyPlan = async (req, res) => {
         $unwind: '$startDates'
       },
       {
-// Filters the documents to pass only the documents that match 
-// the specified condition(s) to the next pipeline stage.
+        // Filters the documents to pass only the documents that match 
+        // the specified condition(s) to the next pipeline stage.
         $match: {
           startDates: {
             $gte: new Date(`${year}-01-01`),
@@ -169,6 +169,7 @@ exports.updateTour = async (req, res) => {
   try {
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
+      runValidator: true
     });
 
     res.status(200).json({

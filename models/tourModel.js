@@ -5,6 +5,8 @@ const tourSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add a tour name'],
     unique: true,
+    trim: true,
+    maxLength: [40, 'max length of chars is 40 letters']
   },
   slug: String,
   secretTour: {
@@ -24,6 +26,11 @@ const tourSchema = new mongoose.Schema({
   difficulty: {
     type: String,
     required: [true, 'Please add difficulty'],
+    enum: {
+      values: ['easy', 'medium', 'difficult'],
+      message: ' shd only be easy or medium or difficult'
+
+    }
   },
   rating: {
     type: Number,
@@ -31,6 +38,8 @@ const tourSchema = new mongoose.Schema({
   },
   ratingsAverage: {
     type: Number,
+    min: [1, 'min rating is not less than 1'],
+    max: [5, 'Max rating is not greater than 1']
   },
   ratingsQuantity: {
     type: Number,
@@ -78,11 +87,23 @@ tourSchema.virtual('durationInWeeks').get(function () {
 
 /* QUERY MIDDLEWARE */
 /* will run on get tour/:id */
-tourSchema.pre('find', function (next) {
-  console.log('this is a secret tour....');
+tourSchema.pre(/^find/, function (next) {
+  this.find({ secretTour: { $ne: true } })
 
   next();
 })
+
+// tourSchema.post(/^find/, function (next) {
+
+//   next();
+// })
+
+tourSchema.pre('aggregate', function (next) {
+  /*pipeline will return an array */
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
+  next();
+})
+
 
 /* create tour model out of schema */
 const Tour = mongoose.model('Tour', tourSchema);
